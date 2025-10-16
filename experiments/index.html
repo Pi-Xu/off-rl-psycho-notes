@@ -288,11 +288,101 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
-  <a href="#1-peg-solitaire" class="md-nav__link">
+  <a href="#experiment-overview" class="md-nav__link">
     <span class="md-ellipsis">
-      1 Peg Solitaire
+      Experiment Overview
     </span>
   </a>
+  
+    <nav class="md-nav" aria-label="Experiment Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#rl-agent-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      RL Agent Training
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#data-generation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Data Generation
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Estimation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#environment-peg-solitaire" class="md-nav__link">
+    <span class="md-ellipsis">
+      Environment: Peg Solitaire
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Environment: Peg Solitaire">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#44-peg-solitaire" class="md-nav__link">
+    <span class="md-ellipsis">
+      4×4 Peg Solitaire
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4×4 Peg Solitaire">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#phase-1-rl-agent-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 1: RL Agent Training
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-3-estimation" class="md-nav__link">
+    <span class="md-ellipsis">
+      Phase 3: Estimation
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7x7-peg-solitaire" class="md-nav__link">
+    <span class="md-ellipsis">
+      7x7 Peg Solitaire
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
   
 </li>
       
@@ -321,7 +411,106 @@
 
 
 <h1 id="experiments">Experiments<a class="headerlink" href="#experiments" title="Permanent link">&para;</a></h1>
-<h2 id="1-peg-solitaire">1 Peg Solitaire<a class="headerlink" href="#1-peg-solitaire" title="Permanent link">&para;</a></h2>
+<h2 id="experiment-overview">Experiment Overview<a class="headerlink" href="#experiment-overview" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Components: RL Agent Training, Data Generation, Estimation.</li>
+</ul>
+<h3 id="rl-agent-training">RL Agent Training<a class="headerlink" href="#rl-agent-training" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Algorithm: DQN with replay buffer, epsilon–greedy exploration, and periodic target network synchronization.</li>
+<li>Environment: discrete-action env with legal action masks; observations are flattened boards.</li>
+<li>Evaluation: periodic greedy evaluation reports <code>success_rate</code> and <code>avg_steps</code> (higher is better here due to monotonic, no‑rollback dynamics); optional final PNG/GIF render of the best policy rollout.</li>
+<li>Model selection: we keep the best checkpoint rather than the last one (selected by maximizing evaluation metrics — primarily <code>success_rate</code>, with <code>avg_steps</code> as a secondary criterion under the monotonic setting).</li>
+</ul>
+<h3 id="data-generation">Data Generation<a class="headerlink" href="#data-generation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Source policy: load a trained checkpoint.</li>
+<li>Behavior model: masked softmax over Q-values, <span class="arithmatex">\(π(a|s, β) ∝ \exp(β·Q(s,a))\)</span> on legal actions; <span class="arithmatex">\(β\)</span> is per-participant (lognormal or fixed).</li>
+</ul>
+<h3 id="estimation">Estimation<a class="headerlink" href="#estimation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Objective: jointly estimate per-participant inverse temperatures (<span class="arithmatex">\(β\)</span>) and a shared <span class="arithmatex">\(Q(s, a)\)</span> from generated trajectories.</li>
+<li>Method: alternating updates — E‑step (Newton updates on <span class="arithmatex">\(z = \log β\)</span> with Gaussian prior), M‑step (optimize <span class="arithmatex">\(Q\)</span> by behavior NLL with soft Bellman and CQL regularizers). Policy head can use <span class="arithmatex">\(Q\)</span> directly or normalized advantages.</li>
+</ul>
+<h2 id="environment-peg-solitaire">Environment: Peg Solitaire<a class="headerlink" href="#environment-peg-solitaire" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th><strong>4×4 full</strong></th>
+<th style="text-align: right;"><strong>7×7 English (33-hole cross)</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><p align="center"><img src="./../imgs/4x4board.png" width="200" /></p></td>
+<td style="text-align: right;"><p align="center"><img src="./../imgs/7x7board.png" width="200" /></p></td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead>
+<tr>
+<th>Board</th>
+<th style="text-align: right;">Holes (H)</th>
+<th style="text-align: right;">State upper bound (<span class="arithmatex">\(2^H\)</span>)</th>
+<th style="text-align: right;">Required jumps to finish (<span class="arithmatex">\(d=H-1\)</span>)</th>
+<th>Implications for RL</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>4×4 full</strong></td>
+<td style="text-align: right;">16</td>
+<td style="text-align: right;">65,536</td>
+<td style="text-align: right;">14</td>
+<td>Small MDP; easy to enumerate; dense-enough transitions; DQN/Tabular feasible; quick convergence; curriculum seed.</td>
+</tr>
+<tr>
+<td><strong>7×7 English (33-hole cross)</strong></td>
+<td style="text-align: right;">33</td>
+<td style="text-align: right;">≈ 8.6e9</td>
+<td style="text-align: right;">31</td>
+<td>Large horizon + sparse terminal reward; exploration hard; heavy dependence on heuristic shaping, good features, or model-based planning; offline RL needs broad coverage and invariance-aware data.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="44-peg-solitaire">4×4 Peg Solitaire<a class="headerlink" href="#44-peg-solitaire" title="Permanent link">&para;</a></h3>
+<h4 id="phase-1-rl-agent-training">Phase 1: RL Agent Training<a class="headerlink" href="#phase-1-rl-agent-training" title="Permanent link">&para;</a></h4>
+<ul>
+<li>Best policy rollout (qualitative): the agent consistently solves the 4×4 board under monotonic dynamics (no rollback). The rollout illustrates a valid long‑horizon solution learned by the policy.</li>
+</ul>
+<p align="center">
+  <img src="./../imgs/4x4peg_best_infere.gif" width="300" />
+  </p>
+
+<ul>
+<li>Training dynamics: as training progresses, average steps increase (better in this setting without rollback) and success rate rises toward 100%. Together, these trends indicate stable learning and effective policy improvement under greedy evaluation.</li>
+</ul>
+<p align="center">
+  <img src="./../imgs/4x4eval_avg_steps.png" width="300" />
+</p>
+
+<p align="center">
+  <img src="./../imgs/4x4eval_success_rate.png" width="300" />
+</p>
+
+<h4 id="phase-3-estimation">Phase 3: Estimation<a class="headerlink" href="#phase-3-estimation" title="Permanent link">&para;</a></h4>
+<p>We estimate participant ability (inverse temperature) and compare it with ground truth. Summary metrics for the scatter plot:</p>
+<ul>
+<li>Pearson r: 0.951</li>
+<li>Spearman r: 0.989</li>
+<li>MAE: 0.447</li>
+<li>MAPE: 0.942</li>
+<li>Median absolute error: 0.389</li>
+<li>R²: 0.781</li>
+</ul>
+<p>Brief analysis: both Pearson and Spearman are very high, showing strong alignment and, in particular, correct ranking of participants’ abilities. R² is lower mainly due to an outlier at the high end of the scale, which disproportionately increases squared error; despite this, the ordering is well recovered.</p>
+<p align="center">
+  <img src="./../imgs/4x4mean_scatter_beta.png" width="400" />
+</p>
+
+<h3 id="7x7-peg-solitaire">7x7 Peg Solitaire<a class="headerlink" href="#7x7-peg-solitaire" title="Permanent link">&para;</a></h3>
+<p>TODO</p>
 
 
 
