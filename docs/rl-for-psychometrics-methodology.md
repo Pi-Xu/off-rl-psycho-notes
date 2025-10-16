@@ -57,7 +57,64 @@ Intuition:
 
 ## 4 Identification Issues
 
-*To be completed.* (e.g., temperature vs. value scale, translation/scale of $Q$, state-wise centering techniques, and constraints that prevent $\beta$–$Q$ co-scaling.)
+### Problem
+
+Under a softmax policy,
+$$
+\pi_\theta(a\mid s,\beta_j)=\frac{\exp(\beta_j Q_\theta(s,a))}{\sum_{a'}\exp(\beta_j Q_\theta(s,a'))},
+$$
+the behavior likelihood is **invariant** to two transformations:
+
+1. **β–Q co-scaling:** $(Q,\beta)\mapsto(cQ,\beta/c)$ for any $c>0$.  
+2. **Per-state translation:** $Q(s,a)\mapsto Q(s,a)+b(s)$.
+
+These symmetries imply that from behavioral data alone, the absolute **scale** and **offset** of $Q$ are not uniquely identified.  
+Without additional constraints, $\beta_j$ can arbitrarily compensate for re-scalings of $Q$, leading to spurious interpretations of individual “temperature” parameters.
+
+---
+
+### Consequence
+
+A model may achieve low held-out negative log-likelihood while its $Q_\theta$ values exist on an arbitrary scale.  
+This breaks the **interpretability** of $\beta_j$ and undermines **out-of-distribution generalization**—for example, when extending to larger state spaces or tasks with different reward magnitudes.
+
+---
+
+### Solution
+
+We explicitly remove the two sources of indeterminacy by construction:
+
+1. **Remove per-state translation (advantage centering).**  
+   Define an unnormalized advantage function:
+   $$
+   \tilde A_\theta(s,a)=Q_\theta(s,a)-\frac{1}{|\mathcal A|}\sum_{a'}Q_\theta(s,a'),
+   \quad\text{so that}\quad \sum_a \tilde A_\theta(s,a)=0.
+   $$
+
+2. **Fix global scale (unit RMS normalization).**  
+   Normalize $\tilde A_\theta$ to have unit root-mean-square (RMS) per state:
+   $$
+   A_\theta(s,a)=\frac{\tilde A_\theta(s,a)}
+   {\sqrt{\frac{1}{|\mathcal A|}\sum_a \tilde A_\theta(s,a)^2+\varepsilon}},
+   \quad\text{so that}\quad 
+   \frac{1}{|\mathcal A|}\sum_a A_\theta(s,a)^2=1.
+   $$
+
+The final policy is then defined over $A_\theta$:
+$$
+\pi_\theta(a\mid s,\beta_j)=\mathrm{softmax}\big(\beta_j A_\theta(s,a)\big).
+$$
+
+---
+
+### Result
+
+- The **translation** freedom is eliminated by zero-centering.  
+- The **scaling** freedom is eliminated by RMS normalization.  
+- $\beta_j$ becomes the *sole* global temperature controlling policy sharpness.  
+
+Consequently, the $(cQ,\beta/c)$ equivalence class collapses to a single representation, yielding a **method-level identification** of the softmax policy parameterization.
+
 
 ---
 
