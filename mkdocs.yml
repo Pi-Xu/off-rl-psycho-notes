@@ -1,0 +1,48 @@
+# MkDocs configuration for the "Research Notes" site
+# This file controls the site name, theme, features, markdown extensions,
+# and the navigation structure shown in the left sidebar and header.
+
+site_name: "RL for Psychometrics"  # Single-project site title shown in header and tab
+
+# Use the Material theme for MkDocs. Install with: `pip install mkdocs-material`
+theme:
+  name: material
+  features:
+    # navigation.instant: Faster page transitions using PJAX
+    - navigation.instant
+    # toc.integrate: Integrate the page table of contents into the sidebar
+    - toc.integrate
+    # content.code.copy: Add a copy-to-clipboard button to code blocks
+    - content.code.copy
+
+# Enable useful Markdown extensions, including pymdown-extensions.
+# Install with: `pip install pymdown-extensions`
+markdown_extensions:
+  # Built-in table of contents. `permalink` adds anchor links to headings.
+  - toc:
+      permalink: true
+  # Syntax highlighting and advanced code block handling
+  - pymdownx.highlight
+  - pymdownx.superfences
+  # Inline/block math support via MathJax (with Material best‑practice config)
+  - pymdownx.arithmatex:
+      generic: true
+  # Admonitions (notes, warnings, tips)
+  - admonition
+  # GitHub-like markdown tables
+  - tables
+
+# Optional: Load MathJax so formulas written with arithmatex render.
+extra_javascript:
+  # Loader to (re)initialize MathJax on page changes with navigation.instant
+  - javascripts/mathjax.js
+  # MathJax v3 from CDN. If offline, consider vendoring this file.
+  - https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js
+
+# Define the site navigation. The order here controls the sidebar/menu order.
+# You can add new dated notes by creating `YYYY-MM-DD.md` files in `docs/`
+# and adding corresponding entries below.
+nav:
+  - Overview: index.md
+  - Methodology: rl-for-psychometrics-methodology.md
+  - Experiments: experiments.md
