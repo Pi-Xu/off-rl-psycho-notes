@@ -301,6 +301,48 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="4 Identification Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#problem" class="md-nav__link">
+    <span class="md-ellipsis">
+      Problem
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#consequence" class="md-nav__link">
+    <span class="md-ellipsis">
+      Consequence
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#solution" class="md-nav__link">
+    <span class="md-ellipsis">
+      Solution
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#result" class="md-nav__link">
+    <span class="md-ellipsis">
+      Result
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -475,7 +517,57 @@
 </blockquote>
 <hr />
 <h2 id="4-identification-issues">4 Identification Issues<a class="headerlink" href="#4-identification-issues" title="Permanent link">&para;</a></h2>
-<p><em>To be completed.</em> (e.g., temperature vs. value scale, translation/scale of <span class="arithmatex">\(Q\)</span>, state-wise centering techniques, and constraints that prevent <span class="arithmatex">\(\beta\)</span>–<span class="arithmatex">\(Q\)</span> co-scaling.)</p>
+<h3 id="problem">Problem<a class="headerlink" href="#problem" title="Permanent link">&para;</a></h3>
+<p>Under a softmax policy,
+$$
+\pi_\theta(a\mid s,\beta_j)=\frac{\exp(\beta_j Q_\theta(s,a))}{\sum_{a'}\exp(\beta_j Q_\theta(s,a'))},
+$$
+the behavior likelihood is <strong>invariant</strong> to two transformations:</p>
+<ol>
+<li><strong>β–Q co-scaling:</strong> <span class="arithmatex">\((Q,\beta)\mapsto(cQ,\beta/c)\)</span> for any <span class="arithmatex">\(c&gt;0\)</span>.  </li>
+<li><strong>Per-state translation:</strong> <span class="arithmatex">\(Q(s,a)\mapsto Q(s,a)+b(s)\)</span>.</li>
+</ol>
+<p>These symmetries imply that from behavioral data alone, the absolute <strong>scale</strong> and <strong>offset</strong> of <span class="arithmatex">\(Q\)</span> are not uniquely identified.<br />
+Without additional constraints, <span class="arithmatex">\(\beta_j\)</span> can arbitrarily compensate for re-scalings of <span class="arithmatex">\(Q\)</span>, leading to spurious interpretations of individual “temperature” parameters.</p>
+<hr />
+<h3 id="consequence">Consequence<a class="headerlink" href="#consequence" title="Permanent link">&para;</a></h3>
+<p>A model may achieve low held-out negative log-likelihood while its <span class="arithmatex">\(Q_\theta\)</span> values exist on an arbitrary scale.<br />
+This breaks the <strong>interpretability</strong> of <span class="arithmatex">\(\beta_j\)</span> and undermines <strong>out-of-distribution generalization</strong>—for example, when extending to larger state spaces or tasks with different reward magnitudes.</p>
+<hr />
+<h3 id="solution">Solution<a class="headerlink" href="#solution" title="Permanent link">&para;</a></h3>
+<p>We explicitly remove the two sources of indeterminacy by construction:</p>
+<ol>
+<li>
+<p><strong>Remove per-state translation (advantage centering).</strong><br />
+   Define an unnormalized advantage function:
+   $$
+   \tilde A_\theta(s,a)=Q_\theta(s,a)-\frac{1}{|\mathcal A|}\sum_{a'}Q_\theta(s,a'),
+   \quad\text{so that}\quad \sum_a \tilde A_\theta(s,a)=0.
+   $$</p>
+</li>
+<li>
+<p><strong>Fix global scale (unit RMS normalization).</strong><br />
+   Normalize <span class="arithmatex">\(\tilde A_\theta\)</span> to have unit root-mean-square (RMS) per state:
+   $$
+   A_\theta(s,a)=\frac{\tilde A_\theta(s,a)}
+   {\sqrt{\frac{1}{|\mathcal A|}\sum_a \tilde A_\theta(s,a)^2+\varepsilon}},
+   \quad\text{so that}\quad 
+   \frac{1}{|\mathcal A|}\sum_a A_\theta(s,a)^2=1.
+   $$</p>
+</li>
+</ol>
+<p>The final policy is then defined over <span class="arithmatex">\(A_\theta\)</span>:
+$$
+\pi_\theta(a\mid s,\beta_j)=\mathrm{softmax}\big(\beta_j A_\theta(s,a)\big).
+$$</p>
+<hr />
+<h3 id="result">Result<a class="headerlink" href="#result" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The <strong>translation</strong> freedom is eliminated by zero-centering.  </li>
+<li>The <strong>scaling</strong> freedom is eliminated by RMS normalization.  </li>
+<li><span class="arithmatex">\(\beta_j\)</span> becomes the <em>sole</em> global temperature controlling policy sharpness.  </li>
+</ul>
+<p>Consequently, the <span class="arithmatex">\((cQ,\beta/c)\)</span> equivalence class collapses to a single representation, yielding a <strong>method-level identification</strong> of the softmax policy parameterization.</p>
 <hr />
 <h2 id="5-generalized-em-alternating-optimization">5 Generalized EM: Alternating Optimization<a class="headerlink" href="#5-generalized-em-alternating-optimization" title="Permanent link">&para;</a></h2>
 <p>Alternate <strong>individual</strong> (<span class="arithmatex">\(\beta\)</span>) and <strong>shared</strong> (<span class="arithmatex">\(Q_\theta, r_w\)</span>) updates.</p>
